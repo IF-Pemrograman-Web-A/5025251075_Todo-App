@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>My Todo List</h1>
+    </header>
+    <main>
+      <div class="container">
+        <aside class="todo-list">
+          <h2>Todos</h2>
+          <input
+            type="text"
+            id="todo-search"
+            class="search-box"
+            placeholder="Search todo..."
+          />
+          <ul>
+            <li>
+              <input type="checkbox" class="todo-checkbox" />
+              <span class="todo-text">Ambil baju di laundry</span>
+              <span class="todo-date">Sep 10, 2026</span>
+            </li>
+            <li>
+              <input type="checkbox" class="todo-checkbox" />
+              <span class="todo-text">Jalan jalan pagi</span>
+              <span class="todo-date">Sep 13, 2026</span>
+            </li>
+            <li>
+              <input type="checkbox" class="todo-checkbox" checked />
+              <span class="todo-text">Selesaikan tugas</span>
+              <span class="todo-date">Sep 13, 2026</span>
+            </li>
+            <li>
+              <input type="checkbox" class="todo-checkbox" />
+              <span class="todo-text">Belanja kebutuhan</span>
+              <span class="todo-date">Sep 12, 2026</span>
+            </li>
+          </ul>
+        </aside>
+        <section class="todo-detail">
+          <h2>Todo Details</h2>
+          <form id="todo-form">
+            <label for="todo-title">Title:</label>
+            <input
+              type="text"
+              id="todo-title"
+              name="todo-title"
+              placeholder="Enter todo title"
+            />
+            <label for="todo-description">Description:</label>
+
+            <textarea
+              id="todo-description"
+              name="todo-description"
+              placeholder="Enter todo description"
+            ></textarea>
+            <label for="todo-due">Due Date:</label>
+            <input type="date" id="todo-due" name="todo-due" />
+            <button type="submit">Add Todo</button>
+          </form>
+        </section>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; PemWeb Todo List App</p>
+    </footer>
+
+    <script>
+      const searchInput = document.getElementById("todo-search");
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        document.querySelectorAll(".todo-list li").forEach((li) => {
+          const text = li.querySelector(".todo-text").textContent.toLowerCase();
+          li.style.display = text.includes(query) ? "flex" : "none";
+        });
+      });
+    </script>
+  </body>
+</html>
