@@ -1,10 +1,11 @@
-# Todo List Static
+# Todo List Dynamic With Web Storage
+- Data tugas dan pilihan tema tidak akan hilang meski web di-refresh atau ditutup
+- Pengguna bisa mengambil foto dari kamera atau mengunggah gambar untuk setiap tugas
+- Ada fitur alarm/notifikasi otomatis yang muncul di perangkat saat waktu tugas sudah dekat
+- Bisa dinavigasi dengan mudah menggunakan keyboard (tanpa mouse) dan mendukung pembaca layar
 
 ## Preview : 
-<img width="1797" height="965" alt="image" src="https://github.com/user-attachments/assets/f6f12b44-0948-4d46-8832-030d782abf1f" />
-
-![Versi terbaru](image-1.png)
-
+![](image.png)
 
 ## Deploy link : https://if-pemrograman-web-a.github.io/5025251075_Todo-App/
 
