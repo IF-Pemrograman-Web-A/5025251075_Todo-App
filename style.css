@@ -1,4 +1,6 @@
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -15,6 +17,19 @@ body {
   background-color: #e6e8ff;
   color: #333;
   padding-bottom: 60px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #00c9b1;
+  outline-offset: 2px;
 }
 
 header {
@@ -64,7 +79,14 @@ header h1 {
   color: #2b2d42;
 }
 
-.search-box {
+.todo-list > label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.todo-list .search-box {
   width: 100%;
   padding: 0.8rem 1.5rem;
   margin-bottom: 1.5rem;
@@ -76,18 +98,18 @@ header h1 {
   transition: all 0.3s;
 }
 
-.search-box:focus {
+.todo-list .search-box:focus {
   background-color: #fff;
   border-color: #00c9b1;
   box-shadow: 0 0 0 3px rgba(0, 201, 177, 0.15);
 }
 
-.todo-list ul {
+.todo-list .todo-list-items {
   list-style-type: none;
   padding: 5px;
 }
 
-.todo-list li {
+.todo-list .todo-item {
   display: flex;
   align-items: center;
   padding: 1rem 1.2rem;
@@ -101,40 +123,108 @@ header h1 {
     box-shadow 0.2s;
 }
 
-.todo-list li:hover {
+.todo-list .todo-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
 }
 
-.todo-checkbox {
+.todo-list .todo-checkbox {
   margin-right: 1rem;
   width: 18px;
   height: 18px;
   accent-color: #00c9b1;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-.todo-text {
+.todo-list .todo-text {
   flex: 1;
   font-weight: 500;
   color: #2d3748;
+  overflow-wrap: anywhere;
 }
 
-.todo-text.completed {
+.todo-list .todo-text.completed {
   text-decoration: line-through;
   color: #a0aec0;
 }
 
-.todo-date {
+.todo-list .todo-date {
   font-size: 0.75rem;
   color: #718096;
   background-color: #edf2f7;
   padding: 4px 10px;
   border-radius: 12px;
   margin-left: 0.5rem;
+  white-space: nowrap;
 }
 
-/* FORM DETAIL */
+.todo-list .todo-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-left: 0.75rem;
+}
+
+.todo-list .todo-description {
+  display: block;
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+.todo-list .todo-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.todo-list .todo-content .todo-text {
+  display: block;
+}
+
+.todo-list .todo-content .todo-date {
+  display: inline-block;
+  margin-left: 0;
+  margin-top: 0.3rem;
+}
+
+.todo-list .action-btns {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+.todo-list .action-btns button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: background-color 0.2s;
+}
+
+.todo-list .btn-edit {
+  background-color: #e6e8ff;
+  color: #4c51f7;
+}
+
+.todo-list .btn-edit:hover {
+  background-color: #c3c7fe;
+}
+
+.todo-list .btn-delete {
+  background-color: #ffe2e5;
+  color: #f64e60;
+}
+
+.todo-list .btn-delete:hover {
+  background-color: #ffc5ca;
+}
+
 .todo-detail form {
   display: flex;
   flex-direction: column;
@@ -149,6 +239,7 @@ header h1 {
 
 .todo-detail input[type="text"],
 .todo-detail input[type="date"],
+.todo-detail input[type="datetime-local"],
 .todo-detail textarea {
   padding: 0.8rem 1.2rem;
   margin-top: 0.5rem;
@@ -190,38 +281,6 @@ header h1 {
   transform: translateY(-1px);
 }
 
-.action-btns {
-  display: flex;
-  gap: 8px;
-  margin-left: 10px;
-}
-
-.action-btns button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.75rem;
-  transition: background-color 0.2s;
-}
-
-.btn-edit {
-  background-color: #e6e8ff;
-  color: #4c51f7;
-}
-.btn-edit:hover {
-  background-color: #c3c7fe;
-}
-
-.btn-delete {
-  background-color: #ffe2e5;
-  color: #f64e60;
-}
-.btn-delete:hover {
-  background-color: #ffc5ca;
-}
-
 .theme-btn {
   padding: 8px 18px;
   background-color: #00c9b1;
@@ -238,7 +297,80 @@ header h1 {
   background-color: #00a894;
 }
 
-/* FOOTER */
+.camera-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.camera-section legend {
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.camera-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.camera-btn {
+  padding: 0.6rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #edf2f7;
+  color: #2d3748;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.camera-btn:hover:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.camera-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.camera-video {
+  width: 100%;
+  max-height: 300px;
+  margin-top: 1rem;
+  border-radius: 12px;
+  object-fit: cover;
+  background-color: #1a1c23;
+}
+
+.todo-image-preview {
+  width: 100%;
+  max-height: 300px;
+  margin-top: 1rem;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.camera-status {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 footer {
   background-color: transparent;
   color: #718096;
@@ -250,7 +382,6 @@ footer {
   font-size: 0.85rem;
 }
 
-/* DARK MODE */
 body.dark-mode {
   background-color: #1a1c23;
   color: #e2e8f0;
@@ -274,7 +405,11 @@ body.dark-mode .todo-detail {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-body.dark-mode .search-box,
+body.dark-mode .todo-list > label {
+  color: #cbd5e0;
+}
+
+body.dark-mode .todo-list .search-box,
 body.dark-mode .todo-detail input,
 body.dark-mode .todo-detail textarea {
   background-color: #1a1c23;
@@ -296,7 +431,8 @@ body.dark-mode .todo-date {
   color: #a0aec0;
 }
 
-body.dark-mode .todo-detail label {
+body.dark-mode .todo-detail label,
+body.dark-mode .camera-section legend {
   color: #cbd5e0;
 }
 
@@ -308,4 +444,59 @@ body.dark-mode .btn-edit {
 body.dark-mode .btn-delete {
   background-color: #4a1d24;
   color: #fc8181;
+}
+
+body.dark-mode .camera-section {
+  border-color: #393c4d;
+}
+
+body.dark-mode .camera-btn {
+  background-color: #2d3748;
+  color: #e2e8f0;
+}
+
+body.dark-mode .camera-btn:hover:not(:disabled) {
+  background-color: #393c4d;
+}
+
+body.dark-mode .camera-status,
+body.dark-mode .todo-description {
+  color: #a0aec0;
+}
+
+@media (max-width: 600px) {
+  .todo-list .todo-item {
+    flex-wrap: wrap;
+  }
+
+  .todo-list .action-btns {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.75rem;
+  }
+
+  .todo-list .action-btns button {
+    flex: 1;
+  }
+
+  .todo-list .todo-date {
+    margin-right: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not(.light-mode) {
+    background-color: #1a1c23;
+  }
 }

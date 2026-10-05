@@ -2,30 +2,51 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Todo List App untuk mengatur tugas dan pengingat."
+    />
     <title>Todo List</title>
     <link rel="stylesheet" href="style.css" />
   </head>
+
   <body>
     <header>
       <h1>My Todo List</h1>
-      <button id="theme-toggle" class="theme-btn">Toggle Dark Mode</button>
+      <button
+        id="theme-toggle"
+        class="theme-btn"
+        type="button"
+        aria-label="Toggle dark mode"
+        aria-pressed="false"
+      >
+        Toggle Dark Mode
+      </button>
     </header>
+
     <main>
       <div class="container">
-        <aside class="todo-list">
-          <h2>Todos</h2>
+        <aside class="todo-list" aria-labelledby="todo-list-title">
+          <h2 id="todo-list-title">Todos</h2>
+
+          <label for="todo-search">Search todo</label>
           <input
-            type="text"
+            type="search"
             id="todo-search"
             class="search-box"
             placeholder="Search todo..."
+            autocomplete="off"
           />
-          <ul id="todo-ul"></ul>
+
+          <p id="todo-status" class="sr-only" aria-live="polite"></p>
+
+          <ul id="todo-ul" class="todo-list-items" aria-label="Todo items"></ul>
         </aside>
-        <section class="todo-detail">
-          <h2>Todo Details</h2>
+
+        <section class="todo-detail" aria-labelledby="todo-detail-title">
+          <h2 id="todo-detail-title">Todo Details</h2>
+
           <form id="todo-form">
             <label for="todo-title">Title:</label>
             <input
@@ -33,21 +54,86 @@
               id="todo-title"
               name="todo-title"
               placeholder="Enter todo title"
+              required
+              autocomplete="off"
             />
-            <label for="todo-description">Description:</label>
 
+            <label for="todo-description">Description:</label>
             <textarea
               id="todo-description"
               name="todo-description"
               placeholder="Enter todo description"
             ></textarea>
+
             <label for="todo-due">Due Date:</label>
-            <input type="date" id="todo-due" name="todo-due" />
+            <input type="date" id="todo-due" name="todo-due" required />
+
+            <label for="todo-notification">Notification Time:</label>
+            <input
+              type="datetime-local"
+              id="todo-notification"
+              name="todo-notification"
+            />
+
+            <fieldset class="camera-section">
+              <legend>Todo Image</legend>
+
+              <div class="camera-controls">
+                <button type="button" id="camera-start" class="camera-btn">
+                  Open Camera
+                </button>
+
+                <button
+                  type="button"
+                  id="camera-capture"
+                  class="camera-btn"
+                  disabled
+                >
+                  Capture Image
+                </button>
+
+                <button
+                  type="button"
+                  id="camera-stop"
+                  class="camera-btn"
+                  disabled
+                >
+                  Stop Camera
+                </button>
+              </div>
+
+              <video
+                id="camera-video"
+                class="camera-video"
+                autoplay
+                playsinline
+                muted
+                aria-label="Camera preview"
+                hidden
+              ></video>
+
+              <canvas id="camera-canvas" class="camera-canvas" hidden></canvas>
+
+              <img
+                id="todo-image-preview"
+                class="todo-image-preview"
+                alt="Preview of captured todo image"
+                hidden
+              />
+
+              <p
+                id="camera-status"
+                class="camera-status"
+                aria-live="polite"
+              ></p>
+            </fieldset>
+
             <button type="submit">Add Todo</button>
           </form>
         </section>
       </div>
     </main>
+
     <footer>
       <p>&copy; PemWeb Todo List App</p>
     </footer>
