@@ -1,48 +1,3 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Todo List App untuk mengatur tugas dan pengingat."
-    />
-    <title>Todo List</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-
-  <body>
-    <header>
-      <h1>My Todo List</h1>
-      <button
-        id="theme-toggle"
-        class="theme-btn"
-        type="button"
-        aria-label="Toggle dark mode"
-        aria-pressed="false"
-      >
-        Toggle Dark Mode
-      </button>
-    </header>
-
-    <main>
-      <div class="container">
-        <aside class="todo-list" aria-labelledby="todo-list-title">
-          <h2 id="todo-list-title">Todos</h2>
-
-          <label for="todo-search">Search todo</label>
-          <input
-            type="search"
-            id="todo-search"
-            class="search-box"
-            placeholder="Search todo..."
-            autocomplete="off"
-          />
-
-          <p id="todo-status" class="sr-only" aria-live="polite"></p>
-
-          <ul id="todo-ul" class="todo-list-items" aria-label="Todo items"></ul>
-        </aside>
 
         <section class="todo-detail" aria-labelledby="todo-detail-title">
           <h2 id="todo-detail-title">Todo Details</h2>
@@ -66,7 +21,12 @@
             ></textarea>
 
             <label for="todo-due">Due Date:</label>
-            <input type="date" id="todo-due" name="todo-due" required />
+            <input
+              type="date"
+              id="todo-due"
+              name="todo-due"
+              required
+            />
 
             <label for="todo-notification">Notification Time:</label>
             <input
@@ -75,11 +35,22 @@
               name="todo-notification"
             />
 
+            <label for="todo-visibility">Ruang Kerja</label>
+
+<select id="todo-visibility" name="todo-visibility">
+  <option value="personal">Personal</option>
+  <option value="shared">Shared</option>
+</select>
+
             <fieldset class="camera-section">
               <legend>Todo Image</legend>
 
               <div class="camera-controls">
-                <button type="button" id="camera-start" class="camera-btn">
+                <button
+                  type="button"
+                  id="camera-start"
+                  class="camera-btn"
+                >
                   Open Camera
                 </button>
 
@@ -112,7 +83,11 @@
                 hidden
               ></video>
 
-              <canvas id="camera-canvas" class="camera-canvas" hidden></canvas>
+              <canvas
+                id="camera-canvas"
+                class="camera-canvas"
+                hidden
+              ></canvas>
 
               <img
                 id="todo-image-preview"
@@ -131,13 +106,3 @@
             <button type="submit">Add Todo</button>
           </form>
         </section>
-      </div>
-    </main>
-
-    <footer>
-      <p>&copy; PemWeb Todo List App</p>
-    </footer>
-
-    <script src="script.js"></script>
-  </body>
-</html>

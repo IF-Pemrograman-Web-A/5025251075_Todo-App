@@ -1,0 +1,10 @@
+# Environment variables
+config/.env
+.env
+
+# Dependencies
+vendor/
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
