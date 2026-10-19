@@ -510,4 +510,48 @@ async function mulai_app() {
 
 window.addEventListener("beforeunload", berhenti_kamera);
 
+const catEl = document.getElementById("bouncing-cat");
+
+if (catEl) {
+  let posX = Math.random() * (window.innerWidth - 100);
+  let posY = Math.random() * (window.innerHeight - 100);
+
+  let speedX = 2.5;
+  let speedY = 2;
+  let facingRight = true;
+
+  function animateCat() {
+    posX += speedX;
+    posY += speedY;
+
+    const catWidth = catEl.clientWidth || 75;
+    const catHeight = catEl.clientHeight || 75;
+
+    if (posX <= 0) {
+      posX = 0;
+      speedX *= -1;
+      facingRight = true;
+    } else if (posX >= window.innerWidth - catWidth) {
+      posX = window.innerWidth - catWidth;
+      speedX *= -1;
+      facingRight = false;
+    }
+
+    if (posY <= 0) {
+      posY = 0;
+      speedY *= -1;
+    } else if (posY >= window.innerHeight - catHeight) {
+      posY = window.innerHeight - catHeight;
+      speedY *= -1;
+    }
+    catEl.style.left = `${posX}px`;
+    catEl.style.top = `${posY}px`;
+    catEl.style.transform = facingRight ? "scaleX(1)" : "scaleX(-1)";
+
+    requestAnimationFrame(animateCat);
+  }
+
+  requestAnimationFrame(animateCat);
+}
+
 mulai_app();
