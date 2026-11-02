@@ -1,6 +1,7 @@
 const CACHE_NAME = "todo-app-v1";
 
 const APP_SHELL = [
+  "./",
   "./index.php",
   "./offline.html",
   "./style.css",
@@ -19,9 +20,10 @@ self.addEventListener("install", (event) => {
 
           if (response.ok) {
             await cache.put(url, response);
+            console.log("Cached:", url);
           }
         } catch (error) {
-          console.log("Failed to cache:", url);
+          console.error("Failed to cache:", url, error);
         }
       }
     }),
@@ -32,30 +34,45 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name)),
-      );
-    }),
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name)),
+        );
+      })
+      .then(() => self.clients.claim()),
   );
-
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-
   const url = new URL(request.url);
 
-  // Only handle GET requests from the same origin.
   if (request.method !== "GET" || url.origin !== self.location.origin) {
     return;
   }
 
   if (url.pathname.includes("/api/")) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() => {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message:
+              "Tidak ada koneksi internet. Silakan coba kembali ketika online.",
+          }),
+          {
+            status: 503,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }),
+    );
 
     return;
   }
@@ -68,18 +85,18 @@ self.addEventListener("fetch", (event) => {
             const responseClone = response.clone();
 
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put("./index.php", responseClone);
+              cache.put(request, responseClone);
             });
           }
 
           return response;
         })
-
         .catch(async () => {
           const cache = await caches.open(CACHE_NAME);
 
           return (
             (await cache.match(request)) ||
+            (await cache.match("./")) ||
             (await cache.match("./index.php")) ||
             (await cache.match("./offline.html"))
           );
@@ -90,7 +107,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
+    caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
@@ -116,7 +133,6 @@ self.addEventListener("message", (event) => {
   }
 
   const todo = event.data.todo;
-
   const delay = Number(event.data.delay);
 
   if (!todo || !Number.isFinite(delay) || delay <= 0) {
@@ -126,9 +142,7 @@ self.addEventListener("message", (event) => {
   setTimeout(() => {
     self.registration.showNotification("Todo Reminder", {
       body: todo.title,
-
       tag: `todo-${todo.id}`,
-
       data: {
         id: todo.id,
       },

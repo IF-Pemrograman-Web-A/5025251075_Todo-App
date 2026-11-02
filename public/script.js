@@ -28,14 +28,16 @@ let camera_stream = null;
 let gambar_tgs = "";
 let serviceWorkerRegistration = null;
 
-function apiRequest(endpoint, options = {}) {
-  return fetch(`${API}/${endpoint}.php`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  }).then(async (response) => {
+async function apiRequest(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API}/${endpoint}.php`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+
     const result = await response.json();
 
     if (!response.ok || result.success === false) {
@@ -43,7 +45,15 @@ function apiRequest(endpoint, options = {}) {
     }
 
     return result;
-  });
+  } catch (error) {
+    if (!navigator.onLine || error instanceof TypeError) {
+      throw new Error(
+        "Koneksi internet tidak tersedia. Silakan coba kembali ketika online.",
+      );
+    }
+
+    throw error;
+  }
 }
 
 function normalizeTodo(todo) {
@@ -226,14 +236,20 @@ async function muat_todos() {
 
   try {
     const result = await apiRequest("list");
+
     list_tgs = result.data.map(normalizeTodo);
+
     render_tgs(inpt_cari.value);
 
     list_tgs.forEach(jadwalkan_notifikasi);
   } catch (error) {
-    list_tgs = [];
-    render_tgs();
-    todoStatus.textContent = `Gagal memuat todo: ${error.message}`;
+    if (list_tgs.length === 0) {
+      render_tgs();
+    }
+
+    todoStatus.textContent = navigator.onLine
+      ? `Gagal memuat todo: ${error.message}`
+      : "Kamu sedang offline. Hubungkan kembali ke internet untuk memuat daftar tugas.";
   }
 }
 

@@ -7,8 +7,6 @@ require_once __DIR__ . '/bootstrap.php';
 requireMethod('GET');
 
 try {
-    // Sementara menggunakan user ID 1 untuk pengujian lokal.
-    // Nanti diganti dengan ID pengguna dari sistem autentikasi.
     $ownerId = 1;
 
     $sql = "
