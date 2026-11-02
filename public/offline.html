@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="theme-color" content="#6c63ff" />
+
+    <title>You're Offline - Todo App</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      .offline-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 24px;
+      }
+
+      .offline-container img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 20px;
+      }
+
+      .offline-container h1 {
+        margin-bottom: 12px;
+      }
+
+      .offline-container p {
+        max-width: 400px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .retry-button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        background: #6c63ff;
+        color: white;
+        cursor: pointer;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="offline-container">
+      <img src="icons/icon-192.png" alt="Todo App Icon" />
+
+      <h1>Kamu lagi offline!</h1>
+
+      <p>
+        Sepertinya Anda kehilangan koneksi internet. Jangan khawatir! Aplikasi
+        Todo ini siap bekerja secara offline.
+      </p>
+
+      <a href="../index.php" class="retry-button"> Try Again </a>
+    </main>
+  </body>
+</html>

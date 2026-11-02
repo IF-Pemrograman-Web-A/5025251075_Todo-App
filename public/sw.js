@@ -1,10 +1,30 @@
-const CACHE_NAME = "todo-app-v2";
+const CACHE_NAME = "todo-app-v1";
 
-const FILES_TO_CACHE = ["./style.css", "./script.js"];
+const APP_SHELL = [
+  "./index.php",
+  "./offline.html",
+  "./style.css",
+  "./script.js",
+  "./manifest.webmanifest",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE)),
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const url of APP_SHELL) {
+        try {
+          const response = await fetch(url);
+
+          if (response.ok) {
+            await cache.put(url, response);
+          }
+        } catch (error) {
+          console.log("Failed to cache:", url);
+        }
+      }
+    }),
   );
 
   self.skipWaiting();
@@ -12,49 +32,75 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key)),
-        ),
-      ),
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name)),
+      );
+    }),
   );
 
   self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+  const request = event.request;
 
-  // Jangan cache API atau halaman PHP; data harus selalu berasal dari server.
-  if (
-    url.pathname.includes("/api/") ||
-    url.pathname.endsWith(".php") ||
-    event.request.method !== "GET"
-  ) {
-    event.respondWith(fetch(event.request));
+  const url = new URL(request.url);
+
+  // Only handle GET requests from the same origin.
+  if (request.method !== "GET" || url.origin !== self.location.origin) {
     return;
   }
 
-  // Halaman utama selalu meminta versi terbaru dari server.
-  if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request));
+  if (url.pathname.includes("/api/")) {
+    event.respondWith(fetch(request));
+
     return;
   }
 
-  // Untuk aset statis, gunakan cache jika tersedia.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put("./index.php", responseClone);
+            });
+          }
+
+          return response;
+        })
+
+        .catch(async () => {
+          const cache = await caches.open(CACHE_NAME);
+
+          return (
+            (await cache.match(request)) ||
+            (await cache.match("./index.php")) ||
+            (await cache.match("./offline.html"))
+          );
+        }),
+    );
+
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
-      return fetch(event.request).then((response) => {
-        if (response.ok && url.origin === self.location.origin) {
-          const copy = response.clone();
+      return fetch(request).then((response) => {
+        if (response.ok) {
+          const responseClone = response.clone();
+
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, copy);
+            cache.put(request, responseClone);
           });
         }
 
@@ -65,18 +111,27 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (!event.data || event.data.type !== "SCHEDULE_NOTIFICATION") return;
+  if (event.data?.type !== "SCHEDULE_NOTIFICATION") {
+    return;
+  }
 
   const todo = event.data.todo;
+
   const delay = Number(event.data.delay);
 
-  if (!todo || !Number.isFinite(delay) || delay <= 0) return;
+  if (!todo || !Number.isFinite(delay) || delay <= 0) {
+    return;
+  }
 
   setTimeout(() => {
     self.registration.showNotification("Todo Reminder", {
       body: todo.title,
+
       tag: `todo-${todo.id}`,
-      data: { id: todo.id },
+
+      data: {
+        id: todo.id,
+      },
     });
   }, delay);
 });
@@ -92,10 +147,12 @@ self.addEventListener("notificationclick", (event) => {
       })
       .then((clientList) => {
         for (const client of clientList) {
-          if ("focus" in client) return client.focus();
+          if ("focus" in client) {
+            return client.focus();
+          }
         }
 
-        if (clients.openWindow) return clients.openWindow("./");
+        return clients.openWindow("./index.php");
       }),
   );
 });
