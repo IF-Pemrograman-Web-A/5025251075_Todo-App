@@ -41,6 +41,15 @@
         >
             Install App
         </button>
+
+        <button
+            id="logoutBtn"
+            type="button"
+            class="theme-btn"
+            style="display: none;"
+        >
+            Logout
+        </button>
     </div>
 </header>
 

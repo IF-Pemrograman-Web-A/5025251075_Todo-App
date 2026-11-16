@@ -13,8 +13,23 @@ $name = $_ENV['DB_NAME'] ?? '';
 $user = $_ENV['DB_USER'] ?? '';
 $pass = $_ENV['DB_PASS'] ?? '';
 
+function databaseFailure(string $logMessage): never
+{
+    error_log($logMessage);
+
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Terjadi kesalahan pada koneksi database',
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
 if ($name === '' || $user === '') {
-    throw new RuntimeException('Konfigurasi database belum lengkap');
+    databaseFailure('Konfigurasi database belum lengkap');
 }
 
 $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
@@ -26,8 +41,5 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 } catch (PDOException $e) {
-    error_log('Database connection failed: ' . $e->getMessage());
-
-    http_response_code(500);
-    exit('Terjadi kesalahan pada koneksi database');
+    databaseFailure('Database connection failed: ' . $e->getMessage());
 }

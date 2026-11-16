@@ -6,5 +6,5 @@ config/.env
 vendor/
 
 # Uploaded files
-uploads/*
-!uploads/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep

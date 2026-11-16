@@ -28,24 +28,66 @@ let camera_stream = null;
 let gambar_tgs = "";
 let serviceWorkerRegistration = null;
 
-async function apiRequest(endpoint, options = {}) {
+const TOKEN_KEY = "todo-token";
+
+function getToken() {
   try {
-    const response = await fetch(`${API}/${endpoint}.php`, {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // localStorage tidak tersedia: sesi hanya bertahan sampai halaman ditutup
+  }
+}
+
+/**
+ * Wrapper fetch untuk REST API.
+ *   apiRequest("todos")                                  -> GET /api/todos
+ *   apiRequest("todos/5", { method: "PATCH", body })     -> PATCH /api/todos/5
+ * Otomatis mengirim Authorization: Bearer <token>, menangani 204 (tanpa body),
+ * dan kembali ke layar login saat server membalas 401.
+ */
+async function apiRequest(path, options = {}, { auth = true } = {}) {
+  const token = getToken();
+
+  try {
+    const response = await fetch(`${API}/${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
     });
 
-    const result = await response.json();
+    // 204 No Content (DELETE berhasil): memang tidak ada body
+    if (response.status === 204) return null;
+
+    const result = await response.json().catch(() => ({}));
 
     if (!response.ok || result.success === false) {
-      throw new Error(result.message || "Permintaan gagal.");
+      if (response.status === 401 && auth) {
+        setToken(null);
+        tampilkan_app(false);
+      }
+
+      const error = new Error(result.message || "Permintaan gagal.");
+      error.status = response.status;
+      error.errors = result.errors || {};
+      throw error;
     }
 
     return result;
   } catch (error) {
+    if (error.status) throw error; // error dari server, teruskan apa adanya
+
     if (!navigator.onLine || error instanceof TypeError) {
       throw new Error(
         "Koneksi internet tidak tersedia. Silakan coba kembali ketika online.",
@@ -135,12 +177,9 @@ function render_tgs(kunci = "") {
 
     checkbox.addEventListener("change", async () => {
       try {
-        await apiRequest("update", {
-          method: "POST",
-          body: JSON.stringify({
-            id: todo.id,
-            is_completed: checkbox.checked,
-          }),
+        await apiRequest(`todos/${todo.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ is_completed: checkbox.checked }),
         });
 
         todo.completed = checkbox.checked;
@@ -235,7 +274,7 @@ async function muat_todos() {
   todoStatus.textContent = "Memuat todo...";
 
   try {
-    const result = await apiRequest("list");
+    const result = await apiRequest("todos");
 
     list_tgs = result.data.map(normalizeTodo);
 
@@ -256,7 +295,7 @@ async function muat_todos() {
 async function unggah_gambar(dataUrl) {
   if (!dataUrl) return null;
 
-  const result = await apiRequest("upload", {
+  const result = await apiRequest("uploads", {
     method: "POST",
     body: JSON.stringify({ image: dataUrl }),
   });
@@ -294,7 +333,7 @@ frmTugas.addEventListener("submit", async (event) => {
       ? `${notificationInput.replace("T", " ")}:00`
       : null;
 
-    await apiRequest("add", {
+    await apiRequest("todos", {
       method: "POST",
       body: JSON.stringify({
         title,
@@ -314,8 +353,10 @@ frmTugas.addEventListener("submit", async (event) => {
     cameraStatus.textContent = "Todo berhasil ditambahkan.";
     await muat_todos();
   } catch (error) {
+    const detail = Object.values(error.errors || {}).join(" ");
+
     cameraStatus.textContent = `Gagal menyimpan todo: ${error.message}`;
-    alert(error.message);
+    if (error.status !== 401) alert(detail ? `${error.message} ${detail}` : error.message);
   } finally {
     submitButton.disabled = false;
   }
@@ -328,10 +369,7 @@ async function hpsData(id) {
   if (!confirm(`Hapus todo "${todo.title}"?`)) return;
 
   try {
-    await apiRequest("delete", {
-      method: "POST",
-      body: JSON.stringify({ id }),
-    });
+    await apiRequest(`todos/${id}`, { method: "DELETE" });
 
     await muat_todos();
   } catch (error) {
@@ -348,12 +386,9 @@ async function edit_dt(id) {
   if (newTitle === null || newTitle.trim() === "") return;
 
   try {
-    await apiRequest("update", {
-      method: "POST",
-      body: JSON.stringify({
-        id,
-        title: newTitle.trim(),
-      }),
+    await apiRequest(`todos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ title: newTitle.trim() }),
     });
 
     await muat_todos();
@@ -518,10 +553,75 @@ async function daftar_service_worker() {
   }
 }
 
+/* ---------- Autentikasi (JWT) ---------- */
+
+const loginSection = document.getElementById("login-section");
+const loginForm = document.getElementById("login-form");
+const loginStatus = document.getElementById("login-status");
+const todoSidebar = document.getElementById("todo-sidebar");
+const todoSection = document.getElementById("todo-section");
+const logoutBtn = document.getElementById("logoutBtn");
+
+function tampilkan_app(loggedIn) {
+  loginSection.hidden = loggedIn;
+  todoSidebar.hidden = !loggedIn;
+  todoSection.hidden = !loggedIn;
+  logoutBtn.style.display = loggedIn ? "inline-block" : "none";
+
+  if (!loggedIn) {
+    list_tgs = [];
+    render_tgs();
+  }
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const submitButton = loginForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  loginStatus.textContent = "Memproses login...";
+
+  try {
+    const result = await apiRequest(
+      "auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email: document.getElementById("login-email").value.trim(),
+          password: document.getElementById("login-password").value,
+        }),
+      },
+      { auth: false },
+    );
+
+    setToken(result.data.token);
+    loginForm.reset();
+    loginStatus.textContent = "";
+
+    tampilkan_app(true);
+    await muat_todos();
+  } catch (error) {
+    loginStatus.textContent = error.message;
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+
+logoutBtn.addEventListener("click", () => {
+  setToken(null);
+  tampilkan_app(false);
+});
+
 async function mulai_app() {
   muat_tema();
   await daftar_service_worker();
-  await muat_todos();
+
+  if (getToken()) {
+    tampilkan_app(true);
+    await muat_todos();
+  } else {
+    tampilkan_app(false);
+  }
 }
 
 window.addEventListener("beforeunload", berhenti_kamera);

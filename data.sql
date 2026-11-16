@@ -8,10 +8,11 @@ CREATE TABLE if not exists users (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL UNIQUE,
   email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE todos (
+CREATE TABLE if not exists todos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     owner_id INT UNSIGNED NOT NULL,
@@ -39,9 +40,10 @@ CREATE TABLE todos (
         ON DELETE CASCADE
 );
 
-INSERT INTO users (name, email) VALUES
-('Naufal', 'naufal@example.com'),
-('Demo User', 'demo@example.com');
+-- Password kedua user demo: password123 (bcrypt)
+INSERT INTO users (name, email, password_hash) VALUES
+('Naufal', 'naufal@example.com', '$2y$10$9G5VWyfnAFtCm.sVDqJAYuTHpGaaC/JFfcc87cvuIGu34Rd57ipoi'),
+('Demo User', 'demo@example.com', '$2y$10$9G5VWyfnAFtCm.sVDqJAYuTHpGaaC/JFfcc87cvuIGu34Rd57ipoi');
 
 INSERT INTO todos (
     owner_id,

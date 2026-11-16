@@ -1,5 +1,5 @@
 
-        <section class="todo-detail" aria-labelledby="todo-detail-title">
+        <section class="todo-detail" id="todo-section" aria-labelledby="todo-detail-title">
           <h2 id="todo-detail-title">Todo Details</h2>
 
           <form id="todo-form">
@@ -104,5 +104,43 @@
             </fieldset>
 
             <button type="submit">Add Todo</button>
+          </form>
+        </section>
+
+        <section
+          class="todo-detail"
+          id="login-section"
+          aria-labelledby="login-title"
+          style="grid-column: 1 / -1; width: min(480px, 100%); justify-self: center;"
+          hidden
+        >
+          <h2 id="login-title">Login</h2>
+
+          <form id="login-form">
+            <label for="login-email">Email:</label>
+            <input
+              type="text"
+              id="login-email"
+              name="login-email"
+              inputmode="email"
+              placeholder="naufal@example.com"
+              autocomplete="username"
+              required
+            />
+
+            <label for="login-password">Password:</label>
+            <input
+              type="text"
+              id="login-password"
+              name="login-password"
+              placeholder="Enter password"
+              autocomplete="current-password"
+              style="-webkit-text-security: disc; text-security: disc;"
+              required
+            />
+
+            <button type="submit">Login</button>
+
+            <p id="login-status" class="camera-status" aria-live="polite"></p>
           </form>
         </section>

@@ -1,5 +1,5 @@
 
-        <aside class="todo-list" aria-labelledby="todo-list-title">
+        <aside class="todo-list" id="todo-sidebar" aria-labelledby="todo-list-title">
           <h2 id="todo-list-title">Todos</h2>
 
 <p class="sidebar-description">
