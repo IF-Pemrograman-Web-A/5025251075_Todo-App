@@ -1,5 +1,15 @@
 # RESTful API
 
+## Fitur Tambahan
+
+1. REST API dengan resource /api/todos; setiap aksi memakai method HTTP yang sesuai (GET, POST, PUT, PATCH, DELETE).
+2. Response code benar (200, 201 + header Location, 204) dan response code salah untuk setiap endpoint (400, 401, 403, 404, 405, 409, 413, 415, 422, 500).
+3. Format response JSON seragam, termasuk detail error per-field pada validasi (422).
+4. Autentikasi JWT (HS256): login dan GET /api/auth/me; token dikirim lewat header Authorization: Bearer <token> dan punya masa berlaku.
+5. Endpoint upload gambar POST /api/uploads (JPEG, maks. 5 MB).
+6. Layered Architecture : front controller, Router, Controller, Validator, Repository, Response.
+7. Integrasi frontend: script.js memakai REST API, form login, tombol Logout, dan otomatis kembali ke login saat token tidak valid (401).
+
 | #   | Ketentuan                                                                       | Implementasi                                                              |
 | --- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | 1   | Backend CRUD → REST API dengan method yang benar (GET, POST, PUT/PATCH, DELETE) | `GET/POST /api/todos`, `GET/PUT/PATCH/DELETE /api/todos/{id}`             |
@@ -28,38 +38,52 @@ public/api/.htaccess ──► public/api/index.php   (front controller)
                         Response::success / error / noContent  → JSON
 ```
 
-Satu lapisan = satu tanggung jawab: **Router** hanya memetakan URL, **Controller** mengatur alur & status code,
-**Validator** memeriksa input, **Repository** satu-satunya tempat SQL, **Response** menjaga format JSON seragam.
+> Layered
+> **Router** hanya memetakan URL, **Controller** mengatur alur & status code,
+> **Validator** memeriksa input, **Repository** tempat eksekusi SQL, **Response** menjaga format JSON seragam.
 
 ### Struktur direktori
 
 ```text
-├── composer.json            (+ autoload PSR-4  App\ → src/)
-├── data.sql                 skema + data demo (users kini punya password_hash)
-├── migration-e06.sql        ALTER TABLE untuk yang sudah punya database E05
+├── composer.json
+├── data.sql
+├── migration-e06.sql
 ├── config/
-│   ├── database.php         koneksi PDO (error kini berupa JSON)
-│   └── .env.example         DB_* + JWT_SECRET + JWT_TTL  → salin jadi config/.env
+│   ├── database.php
+│   └── .env.example
 ├── src/
 │   ├── Http/
-│   │   ├── Request.php      method, path, query, header, body JSON (415/400)
-│   │   ├── Response.php     success() / error() / noContent()
-│   │   ├── Router.php       pencocokan route + 404/405
-│   │   └── ApiException.php exception → status code + pesan + errors
-│   ├── Auth/Jwt.php         buat & verifikasi token HS256
-│   ├── Validation/TodoValidator.php   full() untuk POST/PUT, partial() untuk PATCH
-│   ├── Repositories/        TodoRepository.php, UserRepository.php
-│   └── Controllers/         AuthController.php, TodoController.php, UploadController.php
-├── includes/                header / sidebar / todo-content (+ form login) / footer
+│   │   ├── Request.php
+│   │   ├── Response.php
+│   │   ├── Router.php
+│   │   └── ApiException.php
+│   ├── Auth/
+│   │   └── Jwt.php
+│   ├── Validation/
+│   │   └── TodoValidator.php
+│   ├── Repositories/
+│   │   ├── TodoRepository.php
+│   │   └── UserRepository.php
+│   └── Controllers/
+│       ├── AuthController.php
+│       ├── TodoController.php
+│       └── UploadController.php
+├── includes/
+│   ├── header.php
+│   ├── sidebar.php
+│   ├── todo-content.php
+│   └── footer.php
 └── public/
-    ├── index.php            halaman utama
-    ├── script.js            memanggil REST API (+ login, token Bearer)
-    ├── style.css            TIDAK diubah
-    ├── sw.js, manifest.webmanifest, offline.html   PWA E05 (cache dinaikkan ke v2)
-    ├── uploads/             hasil upload gambar
+    ├── index.php
+    ├── script.js
+    ├── style.css
+    ├── sw.js
+    ├── manifest.webmanifest
+    ├── offline.html
+    ├── uploads/
     └── api/
-        ├── index.php        front controller + daftar route
-        └── .htaccess        rewrite semua /api/* ke index.php
+        ├── index.php
+        └── .htaccess
 ```
 
 ### Perubahan database
@@ -71,26 +95,6 @@ Tabel `todos` tidak berubah. Dua user demo memakai password `password123`.
 
 Semua body request & response berformat JSON. Response sukses: `{"success":true,"message"?,"data":...}`;
 response error: `{"success":false,"message":"...","errors"?:{"field":"pesan"}}`.
-
-| Method     | URL                                         | Auth | Sukses             | Error yang mungkin                                                     |
-| ---------- | ------------------------------------------- | :--: | ------------------ | ---------------------------------------------------------------------- |
-| POST       | `/api/auth/register`                        |  –   | `201`              | `409` nama/email sudah ada · `422` data tidak valid                    |
-| POST       | `/api/auth/login`                           |  –   | `200` + token      | `401` email/password salah · `422` kosong                              |
-| GET        | `/api/auth/me`                              |  ✔   | `200`              | `401`                                                                  |
-| GET        | `/api/todos` (`?visibility=&completed=&q=`) |  ✔   | `200`              | `401` · `422` filter salah                                             |
-| GET        | `/api/todos/{id}`                           |  ✔   | `200`              | `400` id bukan angka · `401` · `403` personal milik orang lain · `404` |
-| POST       | `/api/todos`                                |  ✔   | `201` + `Location` | `400` JSON rusak · `401` · `415` · `422`                               |
-| PUT        | `/api/todos/{id}` (ganti penuh)             |  ✔   | `200`              | `400` · `401` · `403` · `404` · `415` · `422`                          |
-| PATCH      | `/api/todos/{id}` (ubah sebagian)           |  ✔   | `200`              | `400` · `401` · `403` · `404` · `415` · `422`                          |
-| DELETE     | `/api/todos/{id}`                           |  ✔   | `204` (tanpa body) | `400` · `401` · `403` · `404`                                          |
-| POST       | `/api/uploads`                              |  ✔   | `201`              | `401` · `413` >5 MB · `422` bukan JPEG                                 |
-| (apa saja) | URL tidak dikenal                           |      |                    | `404` · method salah → `405` + header `Allow`                          |
-
-Aturan akses: todo hanya bisa diubah/dihapus pemiliknya (`403` jika bukan). Todo `shared` milik orang lain
-boleh dibaca lewat `GET /api/todos/{id}`, todo `personal` tidak. `GET /api/todos` hanya mengembalikan todo milik user yang login.
-
-Field todo: `title`_ (≤255), `due_date`_ (`YYYY-MM-DD`), `description`, `notification_time` (`YYYY-MM-DD HH:MM:SS`),
-`image_path` (hasil `/api/uploads`), `is_completed` (boolean), `visibility` (`personal` | `shared`). \*wajib untuk POST/PUT.
 
 ## Cara mencoba
 
@@ -145,6 +149,13 @@ curl -i -X POST $B/auth/register -H "$J" -d '{"name":"Naufal","email":"naufal@ex
 | Todo milik orang lain | `DELETE /api/todos/3`            |  403   |
 | Method salah          | `DELETE /api/todos`              |  405   |
 
+## Bukti
+
+![alt text](image.png)
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
 ## Catatan
 
 - Semua query memakai prepared statement; nama kolom pada UPDATE berasal dari whitelist validator, bukan input user.
